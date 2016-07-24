@@ -234,6 +234,9 @@ func (s *Server) sendBack(c *session, op []byte, keys [][]byte, resp *parser.Res
 func (s *Server) handleAuthCommand(opstr string, auth []byte) ([]byte, *models.AccessObj, error) {
 	ac, err := models.AccessKeyDecode(s.conf.ProxyAuth, string(auth))
 	if err != nil {
+		if ac != nil {
+			return []byte("-ERR expired auth\r\n"), nil, errors.Trace(err)
+		}
 		return []byte("-ERR invalid auth\r\n"), nil, errors.Trace(err)
 	}
 	return OK_BYTES, ac, nil

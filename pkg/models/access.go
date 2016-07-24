@@ -103,7 +103,7 @@ func AccessKeyDecode(secrectKey string, key string) (*AccessObj, error) {
 	ac.Bucket = int32(binary.BigEndian.Uint32(s[8:12]))
 	ac.KeyPrefix = []byte(fmt.Sprintf("%08x", ac.Bucket))
 	if ac.IsExpired() {
-		return nil, errors.New("ERR AccessKey is expired")
+		return &ac, errors.New("ERR AccessKey is expired")
 	}
 	return &ac, nil
 }
