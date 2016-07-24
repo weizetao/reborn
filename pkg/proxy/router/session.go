@@ -12,6 +12,7 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/ngaut/log"
+	"github.com/reborndb/reborn/pkg/models"
 	"github.com/reborndb/reborn/pkg/proxy/parser"
 )
 
@@ -29,6 +30,7 @@ type session struct {
 	closeSignal           *sync.WaitGroup
 
 	authenticated bool
+	access        *models.AccessObj
 }
 
 type PipelineRequest struct {
@@ -99,7 +101,6 @@ func (s *session) WritingLoop() {
 				s.closeSignal.Done()
 				return
 			}
-
 			flush, err := s.handleResponse(resp)
 			if err != nil {
 				log.Warning(s.RemoteAddr(), resp.ctx, errors.ErrorStack(err))

@@ -12,7 +12,7 @@ all: build
 build: build-proxy build-config build-server build-agent build-daemon
 
 build-proxy:
-	$(GO) build -o bin/reborn-proxy ./cmd/proxy
+	$(GO) build -v -gcflags "-N -l" -o bin/reborn-proxy ./cmd/proxy
 
 build-config:
 	$(GO) build -o bin/reborn-config ./cmd/cconfig

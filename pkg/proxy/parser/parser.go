@@ -161,7 +161,6 @@ func defaultGetKeys(r *Resp) ([][]byte, error) {
 	if count == 0 {
 		return nil, nil
 	}
-
 	keys := make([][]byte, 0, count)
 	for _, v := range r.Multi[1:] {
 		key := raw2Bulk(v)
@@ -358,6 +357,26 @@ func writeBulkArg(w io.Writer, arg []byte) error {
 	sw.Write(arg)
 	_, err := sw.Write(NEW_LINE)
 	return errors.Trace(err)
+}
+
+func WriteBulkArg(w io.Writer, arg []byte) error {
+	return writeBulkArg(w, arg)
+}
+func WriteBulkArgWithPrefix(w io.Writer, prefix []byte, arg []byte) error {
+	sw := ioutils.SimpleWriter(w)
+	sw.Write([]byte{'$'})
+	sw.Write(Itoa(len(arg) + len(prefix)))
+	sw.Write(NEW_LINE)
+	sw.Write(prefix)
+	sw.Write(arg)
+	_, err := sw.Write(NEW_LINE)
+	return errors.Trace(err)
+}
+func GetBulkKey(r *Resp) []byte {
+	if r.Type == MultiResp {
+		return nil
+	}
+	return raw2Bulk(r)
 }
 
 func WriteCommand(w io.Writer, cmd string, args ...interface{}) error {
