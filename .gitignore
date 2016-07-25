@@ -2,3 +2,4 @@ bin
 var
 deploy.tar
 nohup.out
+*.log

@@ -34,21 +34,38 @@ var blackList = []string{
 	"LASTSAVE", "MONITOR", "SAVE", "SHUTDOWN", "SLAVEOF", "SLOWLOG", "SYNC", "TIME", "SLOTSMGRTONE", "SLOTSMGRT",
 	"SLOTSDEL",
 }
+var readOnlyList = []string{
+	"EXISTS", "PTTL", "TTL", "TYPE",
+	"GET", "GETBIT", "GETRANGE", "MGET",
+	"HEXISTS", "HGET", "HGETALL", "HKEYS", "HLEN", "HMGET", "HVALS", "HSCAN",
+	"LINDEX", "LLEN",
+	"SSCAN", "SDIFF", "SISMEMBER", "SMEMBERS",
+	"ZCARD", "ZCOUNT", "ZRANGE", "ZRANGEBYSCORE", "ZRANK", "ZSCORE", "ZSCAN", "ZRANGEBYLEX", "ZLEXCOUNT",
+}
 
 var (
-	blackListCommand = make(map[string]struct{})
-	OK_BYTES         = []byte("+OK\r\n")
+	blackListCommand    = make(map[string]struct{})
+	readOnlyListCommand = make(map[string]struct{})
+	OK_BYTES            = []byte("+OK\r\n")
 )
 
 func init() {
 	for _, k := range blackList {
 		blackListCommand[k] = struct{}{}
 	}
+	for _, k := range readOnlyList {
+		readOnlyListCommand[k] = struct{}{}
+	}
 }
 
 func allowOp(op string) bool {
 	_, black := blackListCommand[op]
 	return !black
+}
+
+func isReadOnlyOp(op string) bool {
+	_, ro := readOnlyListCommand[op]
+	return ro
 }
 
 func isMulOp(op string) bool {
@@ -227,6 +244,11 @@ func filter(opstr string, keys [][]byte, c *session, timeoutSec int) (rawresp []
 			log.Fatal("should never happend", opstr)
 		}
 		return errmsg, false, errors.New(string(errmsg))
+	}
+
+	if c.access.Mode == models.RDONLY && !isReadOnlyOp(opstr) {
+		buf := []byte("-ERR ReadOnly Access\r\n")
+		return buf, false, errors.New("ERR ReadOnly Access")
 	}
 
 	buf, shouldClose, handled, err := handleSpecCommand(opstr, keys, timeoutSec)

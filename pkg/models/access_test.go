@@ -10,7 +10,7 @@ const (
 )
 
 // Test accesskey encoding
-func (s *testModelSuite) Test_AccessKey(c *C) {
+func (s *testModelSuite) TestAccessKey(c *C) {
 
 	k, err := AccessKeyEncode(secrectKey, 13, RDONLY, 0)
 	c.Assert(err, IsNil)
@@ -20,6 +20,6 @@ func (s *testModelSuite) Test_AccessKey(c *C) {
 	c.Logf("%s", k)
 
 	ak, err := AccessKeyDecode(secrectKey, k)
-	c.Assert(ak.Bucket, Equals, 12)
+	c.Assert(ak.ID, Equals, 12)
 	c.Logf("decode %v", ak)
 }

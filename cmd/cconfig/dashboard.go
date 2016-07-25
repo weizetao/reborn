@@ -258,6 +258,9 @@ func runDashboard(addr string, httpLogFile string) {
 	m.Get("/api/redis/:addr/:id/slotinfo", apiGetRedisSlotInfo)
 	m.Get("/api/redis/group/:group_id/:slot_id/slotinfo", apiGetRedisSlotInfoFromGroupId)
 
+	m.Post("/api/access_key/encode", binding.Json(models.AccessObj{}), apiEncodeAccessKey)
+	m.Get("/api/access_key/decode/:ackey", apiDecodeAccessKey)
+
 	m.Put("/api/server_groups", binding.Json(models.ServerGroup{}), apiAddServerGroup)
 	m.Put("/api/server_group/(?P<id>[0-9]+)/addServer", binding.Json(models.Server{}), apiAddServerToGroup)
 	m.Delete("/api/server_group/(?P<id>[0-9]+)", apiRemoveServerGroup)

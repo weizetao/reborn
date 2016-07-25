@@ -15,6 +15,7 @@ type Env interface {
 	ProductName() string
 	DashboardAddr() string
 	StoreAuth() string
+	ProxyAuth() string
 	NewCoordConn() (zkhelper.Conn, error)
 }
 
@@ -24,6 +25,7 @@ type RebornEnv struct {
 	coordinator     string
 	coordinatorAddr string
 	storeAuth       string
+	proxyAuth       string
 }
 
 func (e *RebornEnv) String() string {
@@ -64,6 +66,7 @@ func LoadRebornEnv(cfg *cfg.Cfg) Env {
 	}
 
 	storeAuth, _ := cfg.ReadString("store_auth", "")
+	proxyAuth, _ := cfg.ReadString("proxy_auth", "")
 
 	return &RebornEnv{
 		dashboardAddr:   dashboardAddr,
@@ -71,6 +74,7 @@ func LoadRebornEnv(cfg *cfg.Cfg) Env {
 		coordinator:     coordinator,
 		coordinatorAddr: coordinatorAddr,
 		storeAuth:       storeAuth,
+		proxyAuth:       proxyAuth,
 	}
 }
 
@@ -84,6 +88,10 @@ func (e *RebornEnv) DashboardAddr() string {
 
 func (e *RebornEnv) StoreAuth() string {
 	return e.storeAuth
+}
+
+func (e *RebornEnv) ProxyAuth() string {
+	return e.proxyAuth
 }
 
 func (e *RebornEnv) NewCoordConn() (zkhelper.Conn, error) {

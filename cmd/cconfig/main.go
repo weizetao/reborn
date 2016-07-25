@@ -52,6 +52,7 @@ commands:
     dashboard
     action
     proxy
+    access
 `
 
 func Fatal(msg interface{}) {
@@ -87,6 +88,8 @@ func runCommand(cmd string, args []string) (err error) {
 		return errors.Trace(cmdProxy(argv))
 	case "slot":
 		return errors.Trace(cmdSlot(argv))
+	case "access":
+		return errors.Trace(cmdAccess(argv))
 	}
 	return errors.Errorf("%s is not a valid command. See 'reborn-config -h'", cmd)
 }

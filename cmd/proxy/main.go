@@ -131,9 +131,6 @@ func main() {
 	// set pidfile
 	setStringFromOpt(&pidfile, args, "--pidfile")
 
-	// set proxy auth
-	setStringFromOpt(&proxyAuth, args, "--proxy-auth")
-
 	// set net time
 	setIntArgFromOpt(&netTimeout, args, "--net-timeout")
 
@@ -154,7 +151,10 @@ func main() {
 	conf.PidFile = pidfile
 	conf.NetTimeout = netTimeout
 	conf.Proto = proto
-	conf.ProxyAuth = proxyAuth
+	// conf.ProxyAuth = proxyAuth
+
+	// set proxy auth
+	setStringFromOpt(&conf.ProxyAuth, args, "--proxy-auth")
 
 	if err := utils.CreatePidFile(conf.PidFile); err != nil {
 		log.Fatal(err)

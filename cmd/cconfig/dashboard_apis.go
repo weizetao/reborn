@@ -329,6 +329,23 @@ func apiGetRedisSlotInfoFromGroupId(param martini.Params) (int, string) {
 
 }
 
+func apiEncodeAccessKey(ac models.AccessObj, param martini.Params) (int, string) {
+	ackey, err := models.AccessObjEncode(globalEnv.ProxyAuth(), &ac)
+	if err != nil {
+		return 500, err.Error()
+	}
+	return 200, ackey
+}
+
+func apiDecodeAccessKey(param martini.Params) (int, string) {
+	ac, err := models.AccessKeyDecode(globalEnv.ProxyAuth(), param["ackey"])
+	if err != nil {
+		return 400, err.Error()
+	}
+	out, _ := json.MarshalIndent(ac, " ", "  ")
+	return 200, string(out)
+}
+
 func apiRemoveServerGroup(param martini.Params) (int, string) {
 	conn := CreateCoordConn()
 	defer conn.Close()

@@ -229,6 +229,49 @@ func (s *testProxyRouterSuite) testDialConn(c *C, addr string, auth string) redi
 	return cc
 }
 
+func (s *testProxyRouterSuite) TestAuthAccess(c *C) {
+	cc, err := redis.Dial("tcp", proxyAddr)
+	c.Assert(err, IsNil)
+
+	ackey, err := models.AccessKeyEncode(proxyAuth, 999, models.RDWR, 0)
+	c.Assert(err, IsNil)
+
+	c.Logf("ackey=%s", ackey)
+
+	ok, err := redis.String(cc.Do("AUTH", ackey))
+	c.Assert(err, IsNil)
+	c.Assert(ok, Equals, "OK")
+
+	_, err = cc.Do("SET", "foo", "bar")
+	c.Assert(err, IsNil)
+
+	ackey, err = models.AccessKeyEncode(proxyAuth, 999, models.RDONLY, 0)
+	c.Assert(err, IsNil)
+
+	c.Logf("ackey=%s", ackey)
+
+	ok, err = redis.String(cc.Do("AUTH", ackey))
+	c.Assert(err, IsNil)
+	c.Assert(ok, Equals, "OK")
+
+	_, err = cc.Do("SET", "foo", "bar")
+	c.Assert(err, ErrorMatches, "ERR ReadOnly Access")
+
+	cc, err = redis.Dial("tcp", proxyAddr)
+	c.Assert(err, IsNil)
+
+	ackey, err = models.AccessKeyEncode(proxyAuth, 999, models.RDONLY, time.Now().Unix()+1)
+	c.Assert(err, IsNil)
+
+	time.Sleep(time.Second * 1)
+
+	ok, err = redis.String(cc.Do("AUTH", ackey))
+	c.Assert(err, ErrorMatches, "ERR expired auth")
+
+	s.s1.store.Reset()
+	s.s2.store.Reset()
+}
+
 func (s *testProxyRouterSuite) TestSingleKeyRedisCmd(c *C) {
 	cc := s.testDialConn(c, proxyAddr, proxyAuth)
 	defer cc.Close()

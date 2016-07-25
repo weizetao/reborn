@@ -232,6 +232,10 @@ func (s *Server) sendBack(c *session, op []byte, keys [][]byte, resp *parser.Res
 }
 
 func (s *Server) handleAuthCommand(opstr string, auth []byte) ([]byte, *models.AccessObj, error) {
+	if string(auth) == s.conf.ProxyAuth {
+		ac := models.NewEmptyAccessObj()
+		return OK_BYTES, ac, nil
+	}
 	ac, err := models.AccessKeyDecode(s.conf.ProxyAuth, string(auth))
 	if err != nil {
 		if ac != nil {
@@ -242,53 +246,36 @@ func (s *Server) handleAuthCommand(opstr string, auth []byte) ([]byte, *models.A
 	return OK_BYTES, ac, nil
 }
 
-func filterKeys(resp *parser.Resp, opstr string, keys [][]byte, bucketPrefix []byte) error {
-
-	if resp.Type != parser.MultiResp {
-		return nil
-	}
-
-	if len(bucketPrefix) == 0 {
+func nameSpaceFilter(resp *parser.Resp, opstr string, keys [][]byte, nsPrefix []byte) error {
+	if resp.Type != parser.MultiResp || len(nsPrefix) == 0 {
 		return nil
 	}
 
 	switch opstr {
-	case "MGET":
+	case "MGET", "DEL":
 		{
 			for i := 0; i < len(keys); i++ {
 				var newRaw bytes.Buffer
-				parser.WriteBulkArgWithPrefix(&newRaw, bucketPrefix, keys[i])
+				parser.WriteBulkArgWithPrefix(&newRaw, nsPrefix, keys[i])
 
 				resp.Multi[i+1].Raw = newRaw.Bytes()
 				keys[i] = parser.GetBulkKey(resp.Multi[i+1])
 			}
-		}
-	case "DEL":
-		{
-			for i := 0; i < len(keys); i++ {
-				var newRaw bytes.Buffer
-				parser.WriteBulkArgWithPrefix(&newRaw, bucketPrefix, keys[i])
-
-				resp.Multi[i+1].Raw = newRaw.Bytes()
-				keys[i] = parser.GetBulkKey(resp.Multi[i+1])
-			}
-
 		}
 	case "MSET":
 		{
 			for i := 0; i < len(keys); i = i + 2 {
 				var newRaw bytes.Buffer
-				parser.WriteBulkArgWithPrefix(&newRaw, bucketPrefix, keys[i])
+				parser.WriteBulkArgWithPrefix(&newRaw, nsPrefix, keys[i])
 
 				resp.Multi[i+1].Raw = newRaw.Bytes()
 				keys[i] = parser.GetBulkKey(resp.Multi[i+1])
 			}
-
 		}
 	default:
 		{
 			var newRaw bytes.Buffer
-			parser.WriteBulkArgWithPrefix(&newRaw, bucketPrefix, keys[0])
+			parser.WriteBulkArgWithPrefix(&newRaw, nsPrefix, keys[0])
 
 			resp.Multi[1].Raw = newRaw.Bytes()
 			keys[0] = parser.GetBulkKey(resp.Multi[1])
@@ -309,7 +296,6 @@ func (s *Server) redisTunnel(c *session) error {
 
 	if opstr == "AUTH" {
 		buf, ac, err := s.handleAuthCommand(opstr, k)
-		log.Debug(buf)
 		s.sendBack(c, op, keys, resp, buf)
 		c.authenticated = (err == nil)
 		if c.authenticated {
@@ -342,6 +328,11 @@ func (s *Server) redisTunnel(c *session) error {
 		return nil
 	}
 
+	err = nameSpaceFilter(resp, opstr, keys, c.access.NameSpace)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
 	if isMulOp(opstr) {
 		if !isTheSameSlot(keys) { // can not send to redis directly
 			var result []byte
@@ -352,10 +343,6 @@ func (s *Server) redisTunnel(c *session) error {
 			s.sendBack(c, op, keys, resp, result)
 			return nil
 		}
-	}
-	err = filterKeys(resp, opstr, keys, c.access.KeyPrefix)
-	if err != nil {
-		return errors.Trace(err)
 	}
 
 	k = keys[0]
@@ -394,7 +381,7 @@ func (s *Server) handleConn(c net.Conn) {
 		authenticated: false,
 	}
 	if len(s.conf.ProxyAuth) == 0 {
-		client.access = models.NewDefaultAccessObj()
+		client.access = models.NewEmptyAccessObj()
 	}
 	client.closeSignal.Add(1)
 
@@ -403,7 +390,6 @@ func (s *Server) handleConn(c net.Conn) {
 	var err error
 	defer func() {
 		client.closeSignal.Wait() //waiting for writer goroutine
-		log.Debug("------------------------Wait close signal")
 		if errors2.ErrorNotEqual(err, io.EOF) {
 			log.Warningf("close connection %v, %v", client, errors.ErrorStack(err))
 		} else {
