@@ -22,6 +22,7 @@ Reborn 依赖 ZooKeeper 来存放数据路由表和 reborn-proxy 节点的元信
 
 Reborn 支持按照 Namespace 区分不同的产品, 拥有不同的 product name 的产品, 各项配置都不会冲突.
 
+Reborn 支持访问控制与数据隔离，reborn-config颁发具有访问权限（读写、时效性）的AccessKey，通过auth命令来认证客户端。AccessKey可以是永久性的，也可以是临时性的，满足不同业务场景。AccessKey中含有区分业务的许可ID，不同许可ID的数据是相互隔离的，不会冲突。[详细-->](doc/access_zh.md)
 
 ###Build
 ------------------
@@ -58,6 +59,7 @@ commands:
     dashboard
     action
     proxy
+    access
 ```
 
 ```

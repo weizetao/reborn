@@ -88,6 +88,11 @@ func AccessKeyDecode(secrectKey string, key string) (*AccessObj, error) {
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
+
+	if len(s) < 17 {
+		return nil, errors.New("ERR invalid AccessKey")
+	}
+
 	confuseKey := binary.BigEndian.Uint32(s[13:17])
 	binary.BigEndian.PutUint32(s[0:4], binary.BigEndian.Uint32(s[0:4])^confuseKey)
 	binary.BigEndian.PutUint32(s[4:8], binary.BigEndian.Uint32(s[4:8])^confuseKey)

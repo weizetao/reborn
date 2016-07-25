@@ -246,8 +246,8 @@ func (s *Server) handleAuthCommand(opstr string, auth []byte) ([]byte, *models.A
 	return OK_BYTES, ac, nil
 }
 
-func nameSpaceFilter(resp *parser.Resp, opstr string, keys [][]byte, nsPrefix []byte) error {
-	if resp.Type != parser.MultiResp || len(nsPrefix) == 0 {
+func nameSpaceFilter(resp *parser.Resp, opstr string, keys [][]byte, nameSpace []byte) error {
+	if resp.Type != parser.MultiResp || len(nameSpace) == 0 {
 		return nil
 	}
 
@@ -256,7 +256,7 @@ func nameSpaceFilter(resp *parser.Resp, opstr string, keys [][]byte, nsPrefix []
 		{
 			for i := 0; i < len(keys); i++ {
 				var newRaw bytes.Buffer
-				parser.WriteBulkArgWithPrefix(&newRaw, nsPrefix, keys[i])
+				parser.WriteBulkArgWithPrefix(&newRaw, nameSpace, keys[i])
 
 				resp.Multi[i+1].Raw = newRaw.Bytes()
 				keys[i] = parser.GetBulkKey(resp.Multi[i+1])
@@ -266,7 +266,7 @@ func nameSpaceFilter(resp *parser.Resp, opstr string, keys [][]byte, nsPrefix []
 		{
 			for i := 0; i < len(keys); i = i + 2 {
 				var newRaw bytes.Buffer
-				parser.WriteBulkArgWithPrefix(&newRaw, nsPrefix, keys[i])
+				parser.WriteBulkArgWithPrefix(&newRaw, nameSpace, keys[i])
 
 				resp.Multi[i+1].Raw = newRaw.Bytes()
 				keys[i] = parser.GetBulkKey(resp.Multi[i+1])
@@ -275,7 +275,7 @@ func nameSpaceFilter(resp *parser.Resp, opstr string, keys [][]byte, nsPrefix []
 	default:
 		{
 			var newRaw bytes.Buffer
-			parser.WriteBulkArgWithPrefix(&newRaw, nsPrefix, keys[0])
+			parser.WriteBulkArgWithPrefix(&newRaw, nameSpace, keys[0])
 
 			resp.Multi[1].Raw = newRaw.Bytes()
 			keys[0] = parser.GetBulkKey(resp.Multi[1])
