@@ -229,6 +229,37 @@ func (s *testProxyRouterSuite) testDialConn(c *C, addr string, auth string) redi
 	return cc
 }
 
+func (s *testProxyRouterSuite) TestAuthCmd(c *C) {
+	if len(proxyAuth) > 0 {
+		cc, err := redis.Dial("tcp", proxyAddr)
+		c.Assert(err, IsNil)
+
+		_, err = cc.Do("SET", "foo", "bar")
+		c.Assert(err, NotNil)
+		c.Assert(err, ErrorMatches, "ERR NOAUTH Authentication required")
+	} else {
+		cc, err := redis.Dial("tcp", proxyAddr)
+		c.Assert(err, IsNil)
+
+		_, err = cc.Do("SET", "foo", "bar")
+		c.Assert(err, IsNil)
+	}
+
+	cc, err := redis.Dial("tcp", proxyAddr)
+	c.Assert(err, IsNil)
+
+	ok, err := redis.String(cc.Do("AUTH", proxyAuth))
+	c.Assert(err, IsNil)
+
+	ok, err = redis.String(cc.Do("AUTH", "Wrong-auth-key"))
+	c.Assert(err, NotNil)
+	c.Assert(err, ErrorMatches, "ERR invalid auth")
+	c.Assert(ok, Equals, "")
+
+	s.s1.store.Reset()
+	s.s2.store.Reset()
+}
+
 func (s *testProxyRouterSuite) TestAuthAccess(c *C) {
 	cc, err := redis.Dial("tcp", proxyAddr)
 	c.Assert(err, IsNil)
