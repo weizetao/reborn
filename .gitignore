@@ -3,3 +3,7 @@ var
 deploy.tar
 nohup.out
 *.log
+bower_components/
+cmd/cconfig/dashboard-fe/.tmp/
+cmd/cconfig/dashboard-fe/dist/
+cmd/cconfig/dashboard-fe/node_modules/
