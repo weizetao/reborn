@@ -75,7 +75,7 @@ func apiOverview() (int, string) {
 		for _, instance := range instances {
 			info, err := utils.GetRedisStat(instance, globalEnv.StoreAuth())
 			if err != nil {
-				log.Error(err)
+				log.Error(errors.ErrorStack(err))
 			}
 			redisInfos = append(redisInfos, info)
 		}

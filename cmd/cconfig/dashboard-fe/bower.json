@@ -2,11 +2,11 @@
   "name": "reborn-web",
   "private": true,
   "dependencies": {
-    "angular" : "~1.2.x",
-    "angular-bootstrap" : "latest",
-    "bootstrap" : "latest",
-    "angular-resource" : "latest",
-    "highcharts-ng" : "latest",
-    "highcharts" : "latest"
+    "angular": "latest",
+    "angular-bootstrap": "latest",
+    "bootstrap": "^3.3.7",
+    "angular-resource": "latest",
+    "highcharts-ng": "latest",
+    "highcharts": "latest"
   }
 }

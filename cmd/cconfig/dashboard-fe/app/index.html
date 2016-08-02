@@ -197,6 +197,9 @@
                   <td> Mem Used: </td> <td> [[ memUsed ]] MB</td>
                 </tr>
                 <tr>
+                  <td> Data Used: </td> <td> [[ dataUsed ]] MB</td>
+                </tr>
+                <tr>
                   <td> Performace: </td> <td> [[ ops ]] OP/s</td>
                 </tr>
               </tbody>
@@ -232,6 +235,7 @@
                         <th> Addr </th>
                         <th> Type </th>
                         <th> Mem Used </th>
+                        <th> Data Used </th>
                         <th> Keys </th>
                         <th>  </th>
                       </tr>
@@ -242,6 +246,7 @@
                           <td> [[ server.addr ]] </td>
                           <td> [[ server.type ]] </td>
                           <td> [[ serverInfo.used_memory_human ]] / [[ serverInfo.maxmemory / (1024 * 1024 * 1024.0) ]] GB </td>
+                          <td> [[ serverInfo.rocksdb_data_size_human ]]  </td>
                           <td> [[ serverInfo.db0 ]] </td>
                           <td>
                             <div class="btn-group btn-group-sm pull-right">
